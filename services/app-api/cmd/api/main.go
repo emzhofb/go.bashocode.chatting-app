@@ -65,7 +65,7 @@ func main() {
 	internalMux.HandleFunc("GET /health/ready", healthHandler.Ready)
 	internalMux.Handle("POST /internal/tinode/auth/{endpoint}", tinodeAuthHandler)
 
-	publicServer := &http.Server{Addr: cfg.PublicAddr, Handler: publicMux, ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 15 * time.Second, WriteTimeout: 15 * time.Second, IdleTimeout: 60 * time.Second}
+	publicServer := &http.Server{Addr: cfg.PublicAddr, Handler: httpapi.CORSHandler(publicMux, cfg.AllowedOrigins), ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 15 * time.Second, WriteTimeout: 15 * time.Second, IdleTimeout: 60 * time.Second}
 	internalServer := &http.Server{Addr: cfg.InternalAddr, Handler: internalMux, ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 15 * time.Second, WriteTimeout: 15 * time.Second, IdleTimeout: 60 * time.Second}
 
 	serverErrors := make(chan error, 2)

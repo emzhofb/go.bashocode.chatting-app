@@ -6,7 +6,7 @@ The implementation source of truth is [TINODE_IMPLEMENTATION_PLAYBOOK.md](TINODE
 
 ## Current status
 
-Milestones M0–M4 are implemented; the local M1 Tinode environment and reference-client personal-chat smoke test are healthy. Group chat, attachments, reconnect, and the custom branded web client remain later milestones.
+Milestones M0–M5 foundation are implemented; the local Tinode environment, REST auth, and custom web shell are healthy. Conversation features, group chat, attachments, and reconnect remain later milestones.
 
 ## Start the local Tinode environment
 
@@ -58,6 +58,14 @@ Manual personal-chat smoke test:
 7. Reload both tabs and confirm the conversation history remains.
 
 The current manual acceptance covers account provisioning, personal chat, and basic receipts. Group, attachment, and offline/reconnect scenarios are intentionally still unchecked in the playbook.
+
+Run the custom M5 web shell:
+
+```sh
+(cd apps/web && npm install && npm run dev)
+```
+
+Then open <http://localhost:3000/>. The shell calls `app-api` on `http://localhost:8080` and connects to Tinode on `localhost:6060`.
 
 ## Repository rules
 

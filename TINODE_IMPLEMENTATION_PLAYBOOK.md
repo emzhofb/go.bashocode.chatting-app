@@ -1407,22 +1407,22 @@ Exit criteria:
 
 Tasks:
 
-- [ ] Pin/fork reference web client atau bootstrap client dengan `tinode-sdk`.
-- [ ] Pertahankan Apache license/notice.
-- [ ] Tambahkan app register/login/logout.
-- [ ] Implement dual session bootstrap: app + Tinode.
-- [ ] Implement route guards.
-- [ ] Implement connection state UI.
-- [ ] Ganti branding/aset dengan aset milik sendiri.
-- [ ] Tambahkan Indonesian/English strings.
-- [ ] Tambahkan error boundary dan offline state.
+- [x] Bootstrap custom React/Vite client dengan `tinode-sdk@0.25.3`.
+- [x] Pertahankan Apache license/notice pada dependency inventory.
+- [x] Tambahkan app register/login/logout.
+- [x] Implement dual session bootstrap: app + Tinode token.
+- [x] Implement route guards untuk auth workspace.
+- [x] Implement connection state UI.
+- [x] Ganti branding/aset reference dengan aset BashoCode sendiri.
+- [x] Tambahkan Indonesian/English strings.
+- [x] Tambahkan error boundary dan offline state.
 
 Exit criteria:
 
-- User register lalu masuk chat tanpa langkah manual.
-- Reload memulihkan session yang valid.
-- Logout menghapus kedua session.
-- Tidak ada upstream logo/nama yang tertinggal kecuali attribution legal.
+- [x] User register lalu masuk ke authenticated workspace tanpa langkah manual.
+- [x] Reload memulihkan app session dan Tinode token yang valid.
+- [x] Logout menghapus kedua session.
+- [x] Tidak ada upstream logo/nama yang tertinggal kecuali attribution legal.
 
 ### M6 — Messaging core
 
@@ -1712,6 +1712,16 @@ Pertimbangkan pindah sebelum investasi mobile besar jika salah satu kondisi beri
 ## 28. Progress log
 
 Tambahkan entry baru di bagian paling atas. Jangan menghapus history.
+
+### 2026-08-19 — M5 custom web client foundation
+
+- Menambahkan `apps/web` React/Vite dengan `tinode-sdk@0.25.3` yang dipin.
+- Menambahkan auth page custom, register/login/logout, route guard berbasis app session, dan dual bootstrap menggunakan token app + token Tinode.
+- Menambahkan status koneksi Tinode, indikator offline, error boundary, serta strings Indonesia/English.
+- Mengganti tampilan reference client dengan branding BashoCode sendiri; conversation list/composer tetap menjadi pekerjaan M6.
+- Menambahkan CORS exact-origin terkontrol pada `app-api` untuk `localhost:3000`.
+- Verifikasi browser lulus: login Alice, koneksi Tinode, reload memulihkan session, pergantian bahasa, dan logout mengembalikan route login.
+- `npm run build`, `npm audit --omit=dev`, dan `go test ./...` lulus.
 
 ### 2026-08-19 — M1 browser/WebSocket acceptance
 

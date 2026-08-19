@@ -14,7 +14,8 @@ This file is the starting inventory for the implementation. Update it whenever a
 ## Tinode JavaScript SDK and web client
 
 - SDK: [tinode/tinode-js](https://github.com/tinode/tinode-js)
-- Reference client: [tinode/webapp](https://github.com/tinode/webapp)
+- Package: `tinode-sdk@0.25.3`
+- Reference client: [tinode/webapp](https://github.com/tinode/webapp) (used for local acceptance; M5 shell is a separate application)
 - License: Apache-2.0 (verify the exact pinned commit and notice files when added).
 
 ## PostgreSQL
