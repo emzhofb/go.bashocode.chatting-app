@@ -1,0 +1,35 @@
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.crt
+*.p12
+secrets/
+
+# Runtime data and local volumes
+data/
+infra/postgres/data/
+infra/tinode/uploads/
+*.sql.gz
+*.dump
+
+# Go
+bin/
+services/app-api/vendor/
+services/app-api/*.test
+coverage.out
+
+# Node / web
+node_modules/
+apps/web/dist/
+apps/web/build/
+apps/web/.vite/
+
+# OS/editor
+.DS_Store
+.idea/
+.vscode/
+*.swp
+

@@ -1,0 +1,79 @@
+// Development config for the pinned Tinode 0.25.3 image. Replace all
+// development-only credentials before staging or production.
+{
+  "listen": ":6060",
+  "api_path": "/",
+  "static_mount": "/",
+  "api_key_salt": "T713/rYYgW7g4m3vG6zGRh7+FM1t0T8j13koXScOAj4=",
+  "expvar": "/debug/vars",
+  "use_x_forwarded_for": false,
+  "max_message_size": 131072,
+  "media": {
+    "use_handler": "fs",
+    "max_size": 8388608,
+    "gc_period": 60,
+    "gc_block_size": 100,
+    "handlers": {
+      "fs": {
+        "upload_dir": "/opt/tinode/uploads",
+        "cache_control": "max-age=86400",
+        "cors_origins": ["http://localhost:6060", "http://localhost:3000"]
+      }
+    }
+  },
+  "tls": {
+    "enabled": false
+  },
+  "auth_config": {
+    "logical_names": ["basic:rest", "rest:"],
+    "basic": {
+      "add_to_tags": true,
+      "min_login_length": 4,
+      "min_password_length": 6
+    },
+    "token": {
+      "expire_in": 1209600,
+      "serial_num": 1,
+      "key": "wfaY2RgF2S1OQI/ZlK+LSrp1KB2jwAdGAIHQ7JZn+Kc="
+    },
+    "rest": {
+      "server_url": "http://app-api:8081/internal/tinode/auth/",
+      "allow_new_accounts": true,
+      "use_separate_endpoints": true
+    }
+  },
+  "store_config": {
+    "uid_key": "la6YsO+bNX/+XIkOqc5Svw==",
+    "max_results": 1024,
+    "use_adapter": "postgres",
+    "adapters": {
+      "postgres": {
+        "User": "tinode_admin",
+        "Passwd": "development-only",
+        "Host": "postgres",
+        "Port": "5432",
+        "DBName": "tinode",
+        "SSLMode": "disable",
+        "max_open_conns": 50,
+        "max_idle_conns": 50,
+        "conn_max_lifetime": 60,
+        "sql_timeout": 10
+      }
+    }
+  },
+  "acc_validation": {
+    "email": {
+      "add_to_tags": true,
+      "config": {
+        "debug_response": ""
+      }
+    }
+  },
+  "push": [],
+  "acc_gc_config": {
+    "enabled": true,
+    "gc_period": 3600,
+    "gc_block_size": 10,
+    "gc_min_account_age": 30
+  }
+}
