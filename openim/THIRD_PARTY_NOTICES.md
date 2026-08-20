@@ -8,6 +8,7 @@ This is an inventory for the M0 due-diligence pass. It is not a substitute for t
 | OpenIM Chat | v1.8.4-patch.2 | See the image/repository metadata from the official OpenIM distribution. |
 | OpenIM SDK Core | v3.8.3-patch.14 | AGPL-3.0-or-later or commercial; legal review required. |
 | OpenIM WASM SDK | 3.8.3-patch.15.1 | AGPL-3.0-or-later or commercial; legal review required. |
+| OpenIM Electron/Web demo | commit `62d7ca7b12e91144b315f36c8ebd1d9e0457a352` | Copied into `openim/web`; upstream `LICENSE` is retained. AGPL-3.0 with additional upstream terms; upstream states commercial use is not permitted. |
 | MongoDB | 7.0 | Container image distribution; review upstream notices before redistribution. |
 | Redis | 7.0.0 | Container image distribution; review upstream notices before redistribution. |
 | etcd | 3.5.13 | Container image distribution; review upstream notices before redistribution. |
@@ -15,4 +16,3 @@ This is an inventory for the M0 due-diligence pass. It is not a substitute for t
 | MinIO | RELEASE.2024-01-11T07-46-16Z | Container image distribution; review upstream notices before redistribution. |
 
 Before release, run a dependency/license scanner over the actual images and client/backend dependencies, retain upstream LICENSE/NOTICE files, and ensure no AGPL component is linked into proprietary code without legal approval.
-
