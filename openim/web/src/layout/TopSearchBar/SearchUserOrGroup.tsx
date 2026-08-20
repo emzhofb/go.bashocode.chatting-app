@@ -65,24 +65,29 @@ const SearchUserOrGroup: ForwardRefRenderFunction<
       }
     } else {
       try {
+        const searchKeyword = keyword.trim();
         const {
           data: { total, users },
-        } = await searchBusinessUserInfo(keyword);
+        } = await searchBusinessUserInfo(searchKeyword);
         setLoading(false);
-        if (
-          !total ||
-          (users[0].userID !== keyword && users[0].phoneNumber !== keyword)
-        ) {
+        const normalizedSearchKeyword = searchKeyword.toLowerCase();
+        const user = users[0];
+        const matchesSearch =
+          user &&
+          [user.userID, user.phoneNumber, user.email].some(
+            (value) => value?.trim().toLowerCase() === normalizedSearchKeyword,
+          );
+        if (!total || !matchesSearch) {
           message.warning(t("empty.noSearchResults"));
           return;
         }
         const friendInfo = useContactStore
           .getState()
-          .friendList.find((friend) => friend.userID === users[0].userID);
+          .friendList.find((friend) => friend.userID === user.userID);
 
         openUserCardWithData({
           ...(friendInfo ?? {}),
-          ...users[0],
+          ...user,
         });
       } catch (error) {
         setLoading(false);
