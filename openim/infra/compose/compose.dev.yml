@@ -248,6 +248,24 @@ services:
       start_period: 45s
     networks: [openim]
 
+  livekit:
+    image: livekit/livekit-server:v1.13.1
+    restart: unless-stopped
+    command:
+      - --config
+      - /livekit.yaml
+      - --bind
+      - 0.0.0.0
+      - --node-ip=${LIVEKIT_NODE_IP:?LIVEKIT_NODE_IP is required}
+    volumes:
+      - ../livekit/livekit.yaml:/livekit.yaml:ro
+    ports:
+      - "127.0.0.1:7880:7880"
+      # WebRTC media candidates must be reachable on the host LAN interface.
+      - "7881:7881"
+      - "7882:7882/udp"
+    networks: [openim]
+
 networks:
   openim:
     driver: bridge
