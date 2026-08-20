@@ -41,4 +41,7 @@ func TestValidatePassword(t *testing.T) {
 	if err := ValidatePassword("correct horse battery staple"); err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
+	if err := ValidatePassword("1234567890123456789012345678901234567890123456789012345678901234567890123"); err == nil {
+		t.Fatal("expected password over bcrypt's byte limit to fail")
+	}
 }

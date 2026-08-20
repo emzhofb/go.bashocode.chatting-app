@@ -2,6 +2,8 @@ import { Tinode } from 'tinode-sdk';
 
 const TINODE_HOST = import.meta.env.VITE_TINODE_HOST || 'localhost:6060';
 const TINODE_API_KEY = import.meta.env.VITE_TINODE_API_KEY || 'AQEAAAABAAD_rAp4DJh05a1HAwFT3A6K';
+const TINODE_SECURE = import.meta.env.VITE_TINODE_SECURE === 'true'
+  || (import.meta.env.VITE_TINODE_SECURE !== 'false' && typeof window !== 'undefined' && window.location.protocol === 'https:');
 
 export function createTinodeClient() {
   return new Tinode({
@@ -9,7 +11,7 @@ export function createTinodeClient() {
     host: TINODE_HOST,
     apiKey: TINODE_API_KEY,
     transport: 'ws',
-    secure: false,
+    secure: TINODE_SECURE,
     persist: false,
   });
 }

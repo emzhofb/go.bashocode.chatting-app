@@ -43,6 +43,9 @@ func ValidatePassword(value string) error {
 	if utf8.RuneCountInString(value) < 12 {
 		return fmt.Errorf("password must be at least 12 characters")
 	}
+	if len([]byte(value)) > 72 {
+		return fmt.Errorf("password must be at most 72 bytes")
+	}
 	return nil
 }
 

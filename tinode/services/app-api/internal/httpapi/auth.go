@@ -149,7 +149,11 @@ func decodeJSON(w http.ResponseWriter, r *http.Request, target any) error {
 }
 
 func (h AuthHandler) allow(w http.ResponseWriter, r *http.Request, endpoint string) bool {
-	key := endpoint + ":" + r.RemoteAddr
+	ip := remoteIP(r)
+	key := endpoint + ":unknown"
+	if ip != nil {
+		key = endpoint + ":" + ip.String()
+	}
 	if h.Limiter == nil || h.Limiter.Allow(key) {
 		return true
 	}

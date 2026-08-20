@@ -18,7 +18,14 @@ function AppShell() {
   const [connection, setConnection] = useState('disconnected');
   const [online, setOnline] = useState(() => navigator.onLine);
   const [bootError, setBootError] = useState('');
-  const establishingRef = useRef(false);
+  const sessionRef = useRef(session);
+  const tinodeRef = useRef(null);
+  const tinodeAttemptRef = useRef(0);
+  const establishingRef = useRef(null);
+
+  useEffect(() => {
+    sessionRef.current = session;
+  }, [session]);
 
   useEffect(() => {
     localStorage.setItem('bashocode.language', language);
@@ -35,68 +42,117 @@ function AppShell() {
     };
   }, []);
 
-  const establishTinode = useCallback(async (nextSession) => {
-    if (establishingRef.current) return;
-    establishingRef.current = true;
+  const establishTinode = useCallback((nextSession) => {
+    const accessToken = nextSession.session?.access_token;
+    if (!accessToken) return Promise.reject(new Error('App session is missing'));
+    if (establishingRef.current?.accessToken === accessToken) return establishingRef.current.promise;
+
+    const attempt = tinodeAttemptRef.current + 1;
+    tinodeAttemptRef.current = attempt;
+    const isCurrent = () => tinodeAttemptRef.current === attempt
+      && sessionRef.current?.session?.access_token === accessToken;
     setConnection('connecting');
     setBootError('');
-    try {
-      const result = await connectTinode({
-        username: nextSession.tinodeLogin.username,
-        password: nextSession.__password,
-        token: nextSession.tinodeAuth?.token,
-        expires: nextSession.tinodeAuth?.expires,
-      }, {
-        onConnect: () => setConnection('connected'),
-        onDisconnect: () => setConnection('disconnected'),
-      });
-      const authToken = result.authToken ? { token: result.authToken.token, expires: result.authToken.expires.toISOString() } : null;
-      const persisted = { user: nextSession.user, session: nextSession.session, tinodeLogin: nextSession.tinodeLogin, tinodeAuth: authToken };
-      writeSession(persisted);
-      setSession((current) => ({ ...current, tinodeAuth: authToken, __password: undefined }));
-      setTinode(result.client);
-      setConnection('connected');
-    } catch (error) {
-      setConnection('disconnected');
-      setBootError(error.message || 'Tinode connection failed');
-      throw error;
-    } finally {
-      establishingRef.current = false;
-    }
+    const promise = (async () => {
+      try {
+        const result = await connectTinode({
+          username: nextSession.tinodeLogin.username,
+          password: nextSession.__password,
+          token: nextSession.tinodeAuth?.token,
+          expires: nextSession.tinodeAuth?.expires,
+        }, {
+          onConnect: () => { if (isCurrent()) setConnection('connected'); },
+          onDisconnect: () => { if (isCurrent()) setConnection('disconnected'); },
+        });
+        if (!isCurrent()) {
+          result.client.disconnect();
+          return null;
+        }
+        const authToken = result.authToken ? { token: result.authToken.token, expires: result.authToken.expires.toISOString() } : null;
+        const persisted = { user: nextSession.user, session: nextSession.session, tinodeLogin: nextSession.tinodeLogin, tinodeAuth: authToken };
+        writeSession(persisted);
+        tinodeRef.current = result.client;
+        setSession(persisted);
+        setTinode(result.client);
+        setConnection('connected');
+        return result.client;
+      } catch (error) {
+        if (!isCurrent()) return null;
+        setConnection('disconnected');
+        setBootError(error.message || 'Tinode connection failed');
+        if (!nextSession.__password) {
+          clearSession();
+          sessionRef.current = null;
+          setSession(null);
+        }
+        throw error;
+      }
+    })();
+    establishingRef.current = { accessToken, promise };
+    promise.then(() => {
+      if (establishingRef.current?.promise === promise) establishingRef.current = null;
+    }, () => {
+      if (establishingRef.current?.promise === promise) establishingRef.current = null;
+    });
+    return promise;
+  }, []);
+
+  const disconnectTinode = useCallback(() => {
+    tinodeAttemptRef.current += 1;
+    establishingRef.current = null;
+    tinodeRef.current?.disconnect();
+    tinodeRef.current = null;
+    setTinode(null);
+    setConnection('disconnected');
   }, []);
 
   useEffect(() => {
     if (!session?.session?.access_token) return undefined;
     let active = true;
+    const accessToken = session.session.access_token;
+    let refreshTimer;
+    const scheduleRefresh = (expiresAt) => {
+      const delay = Math.max(1000, new Date(expiresAt).getTime() - Date.now() - 30_000);
+      refreshTimer = window.setTimeout(refresh, delay);
+    };
+    const refresh = async () => {
+      try {
+        const refreshed = await api.refresh(session.session.refresh_token);
+        const persisted = { ...session, ...toSession(refreshed), tinodeAuth: session.tinodeAuth };
+        delete persisted.__password;
+        if (active && sessionRef.current?.session?.access_token === accessToken) {
+          writeSession(persisted);
+          sessionRef.current = persisted;
+          setSession(persisted);
+        }
+      } catch {
+        if (active && sessionRef.current?.session?.access_token === accessToken) {
+          clearSession();
+          sessionRef.current = null;
+          disconnectTinode();
+          setSession(null);
+        }
+      }
+    };
     (async () => {
       try {
         await api.me(session.session.access_token);
+        if (active && sessionRef.current?.session?.access_token === accessToken) scheduleRefresh(session.session.access_expires_at);
       } catch (error) {
         if (error.status !== 401 || !session.session.refresh_token) {
-          if (active) {
+          if (active && sessionRef.current?.session?.access_token === accessToken) {
             clearSession();
+            sessionRef.current = null;
+            disconnectTinode();
             setSession(null);
-            setTinode(null);
           }
           return;
         }
-        try {
-          const refreshed = await api.refresh(session.session.refresh_token);
-          const persisted = { ...session, ...toSession(refreshed), tinodeAuth: session.tinodeAuth };
-          delete persisted.__password;
-          writeSession(persisted);
-          if (active) setSession(persisted);
-        } catch {
-          if (active) {
-            clearSession();
-            setSession(null);
-            setTinode(null);
-          }
-        }
+        await refresh();
       }
     })();
-    return () => { active = false; };
-  }, [session?.session?.access_token]);
+    return () => { active = false; window.clearTimeout(refreshTimer); };
+  }, [session?.session?.access_token, disconnectTinode]);
 
   useEffect(() => {
     if (!session || tinode || (!session.__password && !session.tinodeAuth)) return undefined;
@@ -107,8 +163,7 @@ function AppShell() {
   const finishAuth = async (data, password) => {
     const next = toSession(data);
     next.__password = password;
-    writeSession({ user: next.user, session: next.session, tinodeLogin: next.tinodeLogin });
-    setSession(next);
+    sessionRef.current = next;
     await establishTinode(next);
   };
 
@@ -120,12 +175,26 @@ function AppShell() {
   };
 
   const handleLogout = async () => {
-    if (session?.session?.access_token) await api.logout(session.session.access_token).catch(() => {});
-    tinode?.disconnect();
+    const currentSession = sessionRef.current;
+    const accessToken = currentSession?.session?.access_token;
     clearSession();
-    setTinode(null);
+    sessionRef.current = null;
+    disconnectTinode();
     setSession(null);
-    setConnection('disconnected');
+    if (accessToken) {
+      try {
+        await api.logout(accessToken);
+      } catch (error) {
+        if (error.status === 401 && currentSession.session.refresh_token) {
+          try {
+            const refreshed = await api.refresh(currentSession.session.refresh_token);
+            await api.logout(refreshed.session.access_token);
+          } catch {
+            // Local state is already cleared; the server session may expire naturally.
+          }
+        }
+      }
+    }
   };
 
   if (!session) {
